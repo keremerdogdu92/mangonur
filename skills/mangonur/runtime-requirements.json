@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "runtimeVersion": "1.8.1",
+  "required": {
+    "nodeMajorMin": 20,
+    "pythonMajorMin": 3,
+    "ffmpeg": true,
+    "remotionVersion": "4.0.506"
+  },
+  "optional": {
+    "fasterWhisper": "worker-preferred",
+    "deepFilterNet": "worker-preferred",
+    "rust": false,
+    "homebrew": false
+  },
+  "policy": {
+    "preferLocalStudio": true,
+    "preferLocalShortRender": true,
+    "preferWorkerForHeavyJobs": true,
+    "neverRunNodeModulesFromDrive": true
+  }
+}

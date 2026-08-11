@@ -1,0 +1,81 @@
+<!-- Path: templates/tools-panel/index.html -->
+<!-- Summary: Provides the compact local Mangonur Audio & Finishing UI for non-destructive audio cleanup and automatic caption generation. -->
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mangonur Audio & Finishing</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color-scheme: dark; }
+    body { margin: 0; background: #151515; color: #f5f5f5; }
+    main { max-width: 760px; margin: 0 auto; padding: 24px; }
+    section { background: #202020; border: 1px solid #353535; border-radius: 14px; padding: 18px; margin: 16px 0; }
+    h1 { font-size: 24px; } h2 { font-size: 18px; }
+    label { display: block; margin: 12px 0 6px; color: #cfcfcf; }
+    select, input, button { width: 100%; box-sizing: border-box; padding: 11px; border-radius: 9px; border: 1px solid #454545; background: #111; color: #fff; }
+    button { margin-top: 14px; cursor: pointer; background: #303030; }
+    button:hover { background: #3a3a3a; }
+    output { display: block; white-space: pre-wrap; margin-top: 14px; color: #b9e3bf; }
+    .note { color: #aaa; font-size: 13px; line-height: 1.45; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Mangonur — Audio & Finishing</h1>
+  <p class="note">Kaynak dosyalar korunur. İşlemler yeni türev dosya üretir. Görsel konum, altyazı stili, geçiş ve canlı mix ayarları Remotion Studio'da kalır.</p>
+  <section>
+    <h2>Ses</h2>
+    <label for="audio">Kaynak ses</label><select id="audio"></select>
+    <label for="preset">İşlem</label>
+    <select id="preset">
+      <option value="voice-level">Sadece ses seviyesi</option>
+      <option value="voice-enhance">Ses iyileştirme</option>
+      <option value="voice-clean">Gürültü giderme + iyileştirme</option>
+      <option value="voice-clean-strong">Güçlü gürültü / yankı azaltma</option>
+    </select>
+    <label for="gain">Ses seviyesi (dB)</label><input id="gain" type="number" min="-12" max="12" step="0.5" value="0" />
+    <button id="process">Yeni işlenmiş ses oluştur</button>
+    <output id="audioOutput"></output>
+  </section>
+  <section>
+    <h2>Otomatik altyazı</h2>
+    <label for="captionAudio">Narration</label><select id="captionAudio"></select>
+    <label for="model">Whisper modeli</label>
+    <select id="model"><option>tiny</option><option>base</option><option selected>small</option><option>medium</option></select>
+    <button id="transcribe">Altyazı zamanlarını oluştur</button>
+    <output id="captionOutput"></output>
+  </section>
+</main>
+<script>
+const api = async (url, options) => {
+  const response = await fetch(url, options);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'İşlem başarısız.');
+  return data;
+};
+const populate = async () => {
+  const data = await api('/api/files');
+  for (const id of ['audio', 'captionAudio']) {
+    const select = document.getElementById(id);
+    select.innerHTML = data.audio.map((file) => `<option value="${file}">${file}</option>`).join('');
+  }
+};
+document.getElementById('process').onclick = async () => {
+  const output = document.getElementById('audioOutput'); output.textContent = 'İşleniyor...';
+  try {
+    const data = await api('/api/audio/process', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({source: document.getElementById('audio').value, preset: document.getElementById('preset').value, gainDb: Number(document.getElementById('gain').value)})});
+    output.textContent = `Hazır: ${data.destination}`; await populate();
+  } catch (error) { output.textContent = error.message; }
+};
+document.getElementById('transcribe').onclick = async () => {
+  const output = document.getElementById('captionOutput'); output.textContent = 'Transcription çalışıyor...';
+  try {
+    const data = await api('/api/captions/transcribe', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({source: document.getElementById('captionAudio').value, model: document.getElementById('model').value, language: 'tr'})});
+    output.textContent = `Hazır: ${data.destination}`;
+  } catch (error) { output.textContent = error.message; }
+};
+populate().catch((error) => { document.getElementById('audioOutput').textContent = error.message; });
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Mangonur"
+  short_description: "Viral topic to short-video visual prompts"
+  default_prompt: "Hadi Mangonur yapalım."
+
+policy:
+  allow_implicit_invocation: true
