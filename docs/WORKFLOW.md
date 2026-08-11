@@ -58,6 +58,13 @@ Rules:
 - Reserve safe areas for captions and platform UI.
 - Generate in batches of at most 10 images when using systems with a 10-image generation limit.
 - Do not silently change approved historical / factual constraints.
+- Generate exactly one standalone scene per requested image.
+- Never request or allow collages, contact sheets, storyboard grids, split-screen layouts, multi-panel compositions, comparison sheets, or multiple scene variants inside a single generated image.
+- Narration, subtitle, caption, dialogue, and script text are context for scene generation only and must not be rendered into the generated image.
+- Visible text may appear only when it is explicitly required as an in-scene storytelling element, such as a clock display, date, newspaper headline, sign, label, or other approved visual prop.
+- Keep the configured caption-safe area visually clean for post-production overlays.
+- Every image prompt must receive the mandatory Mangonur image-generation guardrail defined in `docs/IMAGE_PROMPT_RULES.md`.
+- The guardrail must be appended automatically by the future prompt compiler rather than depending on the scene writer to remember it manually.
 
 Human gate: approve generated visuals or request replacements.
 
