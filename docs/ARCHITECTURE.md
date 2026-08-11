@@ -11,6 +11,7 @@ Mangonur should be developed as a reusable production engine with channel/profil
 5. Finalized productions should be reproducible from archived metadata.
 6. Validation should fail visibly instead of silently repairing unknown problems.
 7. The core engine should remain reusable for other short-form channels and formats.
+8. Mandatory production guardrails should be enforced programmatically rather than relying on prompt authors to remember them.
 
 ## Logical Layers
 
@@ -56,7 +57,29 @@ production
 
 JSON Schema or an equivalent typed schema should validate this format before render.
 
-### 3. Media Processing Layer
+### 3. Image Prompt Compilation Layer
+
+Responsibilities:
+
+- convert approved scene intent into model-ready image prompts
+- keep narration and subtitle text separate from visible image content
+- preserve explicitly approved in-scene text requirements
+- append mandatory Mangonur image-generation guardrails automatically
+- guarantee one independent image prompt per visual asset
+- support generation batches without turning a batch into a collage or storyboard
+- preserve channel style and recurring character constraints
+- preserve caption-safe composition requirements
+
+The source of truth for mandatory image-generation constraints is `docs/IMAGE_PROMPT_RULES.md`.
+
+The compiler must prevent two known failure modes:
+
+1. multiple requested scenes being combined into a collage, storyboard, contact sheet, split screen, or multi-panel image;
+2. narration, subtitle, caption, dialogue, or script text being rendered directly into scene artwork when that text is intended for post-production overlays.
+
+These constraints must be applied automatically at prompt compilation time rather than depending on the scene writer to repeat them manually.
+
+### 4. Media Processing Layer
 
 Responsibilities:
 
@@ -70,7 +93,7 @@ Responsibilities:
 
 The implementation may use FFmpeg and dedicated cleanup tools, but command construction and presets should be centralized instead of scattered through production scripts.
 
-### 4. Caption Layer
+### 5. Caption Layer
 
 Responsibilities:
 
@@ -84,7 +107,7 @@ Responsibilities:
 
 Caption data should remain independent from the visual React component so different styles can reuse the same timing data.
 
-### 5. Remotion Rendering Layer
+### 6. Remotion Rendering Layer
 
 Responsibilities:
 
@@ -114,7 +137,7 @@ remotion/src/
 
 Production-specific values should enter through props / manifest data rather than direct edits to shared components.
 
-### 6. Validation Layer
+### 7. Validation Layer
 
 Validation should operate before expensive rendering.
 
@@ -122,11 +145,14 @@ Categories:
 
 - schema validation
 - asset validation
+- image prompt validation
 - timing validation
 - caption validation
 - audio validation
 - render configuration validation
 - archive completeness validation
+
+Image prompt validation should verify at minimum that one scene maps to one expected visual asset, subtitle-rendering instructions are not accidentally present, and explicitly approved in-scene text remains distinguishable from narration/caption text.
 
 Severity levels:
 
@@ -134,7 +160,7 @@ Severity levels:
 - WARNING — render is allowed but review is required
 - INFO — useful production metadata
 
-### 7. Archive / Similarity Layer
+### 8. Archive / Similarity Layer
 
 Only finalized productions become long-term comparison references.
 
@@ -162,6 +188,7 @@ mangonur/
 │  └─ mangonur/
 ├─ packages/
 │  ├─ production-schema/
+│  ├─ prompt-compiler/
 │  ├─ media-processing/
 │  ├─ caption-engine/
 │  ├─ validation/
@@ -178,9 +205,10 @@ This is a target architecture, not a requirement to create every folder immediat
 
 1. Import the current Mangonur skill without rewriting it blindly.
 2. Import the current Remotion implementation and inspect its existing structure.
-3. Identify the current audio cleanup scripts / commands and preserve the known-good chain.
-4. Identify the current caption implementation and overflow handling.
-5. Define the first production manifest from the existing Zanzibar production.
-6. Refactor only after the known-good production can be reproduced.
+3. Identify the current image prompt generation logic and implement the mandatory guardrail from `docs/IMAGE_PROMPT_RULES.md` without changing unrelated prompt behavior.
+4. Identify the current audio cleanup scripts / commands and preserve the known-good chain.
+5. Identify the current caption implementation and overflow handling.
+6. Define the first production manifest from the existing Zanzibar production.
+7. Refactor only after the known-good production can be reproduced.
 
 This ordering prevents architectural cleanup from destroying working production behavior.
