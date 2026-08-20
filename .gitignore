@@ -1,0 +1,9 @@
+# Mangonur repository ignore rules.
+# Local credentials must never be committed to source control.
+
+.env
+.env.local
+.env.*.local
+
+# Keep the committed environment template available to all installations.
+!.env.example
